@@ -1,0 +1,63 @@
+- name: Add PostgreSQL apt key
+  apt_key:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+
+- name: Add PostgreSQL repository
+  apt_repository:
+    repo: deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main
+
+- name: Install PostgreSQL 16
+  apt:
+    name: postgresql-16
+    update_cache: yes
+
+- name: Check installation
+  service:
+    name: postgresql
+    state: started
+    enabled: yes
+
+- name: Install psycopg2
+  apt:
+    name: python3-psycopg2
+    state: present
+  become: yes
+
+- name: Change password for postgres
+  user:
+    name: "postgres"
+    password: "{{ postgres_pass | password_hash('sha512') }}"
+
+- name: Add entries to pg_hba
+  community.postgresql.postgresql_pg_hba:
+    dest: "/etc/postgresql/16/main/pg_hba.conf"
+    address: "{{ item.address | default(omit) }}"
+    contype: "{{ item.contype }}"
+    databases: "{{ item.databases }}"
+    method: "{{ item.method }}"
+    users: "{{ item.users }}"
+  become: yes
+  become_user: postgres
+  with_items: "{{ postgresql_hba_entries }}"
+  notify:
+    - Restart postgresql
+
+- name: Set options
+  community.postgresql.postgresql_set:
+#    dest: "/etc/postgresql/16/main/postgresql.conf"
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+  become: true
+  become_user: postgres
+#  become_pass: "{{ postgres_pass }}"
+  with_items: "{{ postgresql_options }}"
+  notify:
+    - Restart postgresql
+
+#- name: Copy database configuration
+#  template:
+#    src: full_postgresql.conf.j2
+#    dest: /etc/postgresql/16/main/postgresql.conf
+#    group: postgres
+#    mode: '0644'
+#    owner: postgres

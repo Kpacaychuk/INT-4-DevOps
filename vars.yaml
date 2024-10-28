@@ -1,0 +1,5 @@
+postgresql_options:
+  - { name: listen_addresses,  value: "*" }
+
+postgresql_hba_entries:
+  - { contype: host, databases: all, users: all, address: 0.0.0.0/0, method: trust}
