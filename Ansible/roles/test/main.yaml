@@ -1,0 +1,14 @@
+- name: Postgresql version
+  command: psql --version
+  register: postgres_version
+  ignore_errors: yes
+
+- name: Version output
+  debug:
+    msg: "PostgreSQL version: {{ postgres_version.stdout }}"
+  when: postgres_version.rc == 0
+
+- name: Errors
+  debug:
+    msg: "PostgreSQL not installed"
+  when: postgres_version.rc != 0
