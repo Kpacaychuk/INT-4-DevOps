@@ -1,0 +1,20 @@
+- name: Backup old source.list
+  copy:
+    src: /etc/apt/sources.list
+    dest: /etc/apt/sources.list.bak
+    remote_src: yes
+
+- name: New source.list
+  copy:
+    content: |
+      deb http://deb.debian.org/debian/ {{ ansible_distribution_release }} main contrib
+      deb-src http://deb.debian.org/debian/ {{ ansible_distribution_release }} main contrib
+      deb http://deb.debian.org/debian/ {{ ansible_distribution_release }}-updates main contrib
+      deb-src http://deb.debian.org/debian/ {{ ansible_distribution_release }}-updates main contrib
+#      deb http://security.debian.org/debian-security {{ ansible_distribution_release }}-security main contrib
+#      deb-src http://security.debian.org/debian-security {{ ansible_distribution_release }}-security main contrib
+      #deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main contrib
+    dest: /etc/apt/sources.list
+    owner: root
+    group: root
+    mode: '0644'
